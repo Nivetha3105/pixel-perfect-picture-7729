@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowDown, ArrowLeft, ArrowRight, Check, Heart, Music2, Pause, RotateCcw, Sparkles, Volume2, VolumeX, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { appreciationNotes, birthdayLetter, friendName, memories, quizQuestions, secretNote, surpriseNames } from "@/lib/birthday-content";
+import { appreciationNotes, birthdayLetter, friendName, memories, secretNote, surpriseNames } from "@/lib/birthday-content";
 import stilllife from "@/assets/birthday-stilllife.jpg";
 
 export const Route = createFileRoute("/")({
@@ -78,7 +78,7 @@ function BirthdayExperience() {
   useEffect(() => () => { if (audioRef.current) void audioRef.current.close(); }, []);
 
   useEffect(() => {
-    if (scene === 6 && !letterStartedRef.current) {
+    if (scene === 5 && !letterStartedRef.current) {
       letterStartedRef.current = true;
       setLetterStarted(true);
     }
@@ -88,15 +88,15 @@ function BirthdayExperience() {
     if (!letterStarted || letterComplete) return;
     let step = letterChars;
     const timer = window.setInterval(() => {
-      step = Math.min(text.length, step + 3);
+      step = Math.min(letter.length, step + 3);
       setLetterChars(step);
-      if (step >= text.length) {
+      if (step >= letter.length) {
         setLetterComplete(true);
         window.clearInterval(timer);
       }
     }, 15);
     return () => window.clearInterval(timer);
-  }, [text, letterChars, letterStarted, letterComplete]);
+  }, [letter.length, letterChars, letterStarted, letterComplete]);
 
   useEffect(() => {
     if (candles.every((lit) => !lit) && !celebrated) {
