@@ -22,24 +22,6 @@ export const appreciationNotes = [
 
 export const secretNote = "In case nobody has told you lately: you matter, you're appreciated, and it's a little brighter with you in it. Happy birthday.";
 
-export const quizQuestions = [
-  {
-    question: "What is the most important ingredient in an excellent day?",
-    choices: ["A spontaneous snack", "A very good nap", "A friend who gets it", "All three, obviously"],
-    response: ["An inspired answer.", "Rest is a serious art form.", "This may be why we get along.", "The only correct answer, honestly."],
-  },
-  {
-    question: "Your official birthday superpower should be…",
-    choices: ["Finding the best food", "Making everyone laugh", "Always knowing the way", "Unlimited cake storage"],
-    response: ["An essential life skill.", "Already a strong contender.", "A reassuring superpower.", "Finally, a sensible use of magic."],
-  },
-  {
-    question: "What should the year ahead have more of?",
-    choices: ["Good surprises", "Ridiculously good food", "Big belly laughs", "A little bit of everything"],
-    response: ["May the good kind find you.", "A year of excellent choices.", "Wishing you the loudest laughs.", "A birthday wish worth making."],
-  },
-];
-
 export const birthdayLetter = `Dear You,\n\nFirst of all, happiest birthday!\n\nSome people make ordinary days a little more memorable just by being themselves. I'm genuinely glad that I got to know you.\n\nI hope this new chapter brings you countless reasons to smile, opportunities that excite you, and memories that stay with you forever.\n\nKeep being yourself, keep growing, and never forget how much you are appreciated.\n\nThank you for being a part of my little world.\n\nI hope this birthday makes you feel as special as you truly are.\n\nHappy Birthday! ♡`;
 
 export const surpriseNames = [
@@ -48,7 +30,6 @@ export const surpriseNames = [
   "Our little memories",
   "A jar of reasons",
   "Make a wish",
-  "A little quiz",
   "The final letter",
   "One last surprise",
 ];

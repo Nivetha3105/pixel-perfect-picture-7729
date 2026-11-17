@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowDown, ArrowLeft, ArrowRight, Check, ChevronRight, Heart, Music2, Pause, RotateCcw, Sparkles, Volume2, VolumeX, X } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, Check, Heart, Music2, Pause, RotateCcw, Sparkles, Volume2, VolumeX, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { appreciationNotes, birthdayLetter, friendName, memories, quizQuestions, secretNote, surpriseNames } from "@/lib/birthday-content";
 import stilllife from "@/assets/birthday-stilllife.jpg";
