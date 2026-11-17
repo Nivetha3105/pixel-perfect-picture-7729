@@ -25,7 +25,6 @@ export const secretNote = "In case nobody has told you lately: you matter, you'r
 export const birthdayLetter = `Dear You,\n\nFirst of all, happiest birthday!\n\nSome people make ordinary days a little more memorable just by being themselves. I'm genuinely glad that I got to know you.\n\nI hope this new chapter brings you countless reasons to smile, opportunities that excite you, and memories that stay with you forever.\n\nKeep being yourself, keep growing, and never forget how much you are appreciated.\n\nThank you for being a part of my little world.\n\nI hope this birthday makes you feel as special as you truly are.\n\nHappy Birthday! ♡`;
 
 export const surpriseNames = [
-  "The little envelope",
   "The birthday gift",
   "Our little memories",
   "A jar of reasons",
