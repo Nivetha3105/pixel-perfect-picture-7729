@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowDown, ArrowLeft, ArrowRight, Check, ChevronRight, Heart, Music2, Pause, Play, RotateCcw, Sparkles, Volume2, VolumeX, X } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, Check, ChevronRight, Heart, Music2, Pause, RotateCcw, Sparkles, Volume2, VolumeX, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { appreciationNotes, birthdayLetter, friendName, memories, quizQuestions, secretNote, surpriseNames } from "@/lib/birthday-content";
 import stilllife from "@/assets/birthday-stilllife.jpg";
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
   component: BirthdayExperience,
 });
 
-type Scene = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+type Scene = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 function BirthdayExperience() {
   const [scene, setScene] = useState<Scene>(0);
@@ -31,11 +31,10 @@ function BirthdayExperience() {
   const [secretFound, setSecretFound] = useState(false);
   const [flippedCards, setFlippedCards] = useState<number[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
-  const [quizAnswers, setQuizAnswers] = useState<(number | null)[]>([null, null, null]);
-  const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [candles, setCandles] = useState([true, true, true]);
   const [celebrated, setCelebrated] = useState(false);
   const [letter, setLetter] = useState(birthdayLetter);
+  const [letterChars, setLetterChars] = useState(0);
   const [letterStarted, setLetterStarted] = useState(false);
   const [letterComplete, setLetterComplete] = useState(false);
   const [secretEnding, setSecretEnding] = useState(false);
@@ -45,7 +44,6 @@ function BirthdayExperience() {
   const [confetti, setConfetti] = useState<{ id: number; x: number; delay: number }[]>([]);
   const letterStartedRef = useRef(false);
   const audioRef = useRef<AudioContext | null>(null);
-  const musicTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const sparkleIdRef = useRef(0);
 
   const audioContext = () => {
@@ -77,38 +75,6 @@ function BirthdayExperience() {
     window.setTimeout(() => setConfetti([]), 1700);
   }, []);
 
-  useEffect(() => {
-    if (!musicOn) {
-      if (musicTimerRef.current) window.clearInterval(musicTimerRef.current);
-      musicTimerRef.current = null;
-      return;
-    }
-    const notes = [261.63, 329.63, 392, 329.63, 293.66, 349.23, 440, 349.23];
-    let step = 0;
-    const playMusicNote = () => {
-      const context = audioContext();
-      if (!context) return;
-      const oscillator = context.createOscillator();
-      const volume = context.createGain();
-      oscillator.type = "sine";
-      oscillator.frequency.value = notes[step % notes.length] ?? 329.63;
-      volume.gain.setValueAtTime(0.0001, context.currentTime);
-      volume.gain.exponentialRampToValueAtTime(0.018, context.currentTime + 0.12);
-      volume.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.8);
-      oscillator.connect(volume);
-      volume.connect(context.destination);
-      oscillator.start();
-      oscillator.stop(context.currentTime + 0.82);
-      step += 1;
-    };
-    playMusicNote();
-    musicTimerRef.current = window.setInterval(playMusicNote, 920);
-    return () => {
-      if (musicTimerRef.current) window.clearInterval(musicTimerRef.current);
-      musicTimerRef.current = null;
-    };
-  }, [musicOn]);
-
   useEffect(() => () => { if (audioRef.current) void audioRef.current.close(); }, []);
 
   useEffect(() => {
@@ -120,17 +86,17 @@ function BirthdayExperience() {
 
   useEffect(() => {
     if (!letterStarted || letterComplete) return;
-    let step = 0;
+    let step = letterChars;
     const timer = window.setInterval(() => {
-      step += 3;
-      if (step >= letter.length) {
-        step = letter.length;
+      step = Math.min(text.length, step + 3);
+      setLetterChars(step);
+      if (step >= text.length) {
         setLetterComplete(true);
         window.clearInterval(timer);
       }
     }, 15);
     return () => window.clearInterval(timer);
-  }, [letter, letterStarted, letterComplete]);
+  }, [text, letterChars, letterStarted, letterComplete]);
 
   useEffect(() => {
     if (candles.every((lit) => !lit) && !celebrated) {
@@ -160,8 +126,7 @@ function BirthdayExperience() {
     window.setTimeout(() => setScene(1), 1050);
   };
 
-  const next = () => setScene((current) => Math.min(7, current + 1) as Scene);
-  const previous = () => setScene((current) => Math.max(0, current - 1) as Scene);
+  const next = () => setScene((current) => Math.min(6, current + 1) as Scene);
 
   const pickRandomNote = () => {
     const unread = noteOrder.filter((index) => !openedNotes.includes(index));
@@ -182,11 +147,10 @@ function BirthdayExperience() {
     setSecretFound(false);
     setFlippedCards([]);
     setSelectedPhoto(null);
-    setQuizAnswers([null, null, null]);
-    setQuizSubmitted(false);
     setCandles([true, true, true]);
     setCelebrated(false);
     setLetter(birthdayLetter);
+    setLetterChars(0);
     setLetterStarted(false);
     setLetterComplete(false);
     letterStartedRef.current = false;
@@ -195,12 +159,13 @@ function BirthdayExperience() {
     setMusicOn(false);
   };
 
-  const completedSurprises = [envelopeOpen, giftOpen, flippedCards.length > 0, openedNotes.length > 0, celebrated, quizSubmitted, letterComplete, secretEnding].filter(Boolean).length;
-  const isFinalNight = scene === 7 && secretEnding;
+  const completedSurprises = [envelopeOpen, giftOpen, flippedCards.length > 0, openedNotes.length > 0, celebrated, letterComplete, secretEnding].filter(Boolean).length;
+  const isFinalNight = scene === 6 && secretEnding;
 
   return (
     <main className={`relative min-h-screen overflow-hidden transition-colors duration-700 ${isFinalNight ? "stars-field text-background" : "bg-background text-foreground"}`} onMouseMove={scene === 0 ? undefined : sprinkle}>
       {scene !== 0 && <UtilityBar musicOn={musicOn} muteEffects={muteEffects} onMusic={() => setMusicOn((value) => !value)} onMute={() => setMuteEffects((value) => !value)} onReplay={replay} />}
+      {musicOn && <MusicPlayer onClose={() => setMusicOn(false)} />}
       {scene > 0 && <ProgressRail scene={scene} completed={completedSurprises} onJump={(target) => setScene(target)} />}
       <SparkleTrail sparkles={sparkles} />
       {confetti.length > 0 && <Confetti confetti={confetti} />}
@@ -210,9 +175,8 @@ function BirthdayExperience() {
         {scene === 2 && <MemoriesScene flipped={flippedCards} onFlip={(index) => setFlippedCards((items) => items.includes(index) ? items.filter((item) => item !== index) : [...items, index])} onPhoto={setSelectedPhoto} onContinue={next} />}
         {scene === 3 && <NotesScene activeNote={activeNote} opened={openedNotes} order={noteOrder} secretFound={secretFound} onPick={(index) => { setActiveNote(index); setOpenedNotes((items) => items.includes(index) ? items : [...items, index]); playTone(392); }} onRandom={pickRandomNote} onSecret={() => setSecretFound(true)} onShuffle={() => { setNoteOrder((items) => [...items].sort(() => Math.random() - 0.5)); setActiveNote(null); }} onContinue={next} />}
         {scene === 4 && <WishScene candles={candles} celebrated={celebrated} onBlow={(index) => { playTone(349.23); setCandles((items) => items.map((lit, candle) => candle === index ? false : lit)); }} onRelight={() => { setCandles([true, true, true]); setCelebrated(false); }} onCelebrate={burstConfetti} onContinue={next} />}
-        {scene === 5 && <QuizScene answers={quizAnswers} submitted={quizSubmitted} onAnswer={(question, answer) => setQuizAnswers((items) => items.map((item, index) => index === question ? answer : item))} onSubmit={() => setQuizSubmitted(true)} onContinue={next} />}
-        {scene === 6 && <LetterScene text={letter} complete={letterComplete} onText={(value) => { setLetter(value); setLetterComplete(true); }} onShowAll={() => setLetterComplete(true)} onContinue={next} />}
-        {scene === 7 && <FinalScene revealed={secretEnding} onReveal={() => { setSecretEnding(true); burstConfetti(65); playTone(783.99); }} onReplay={replay} name={friendName} />}
+        {scene === 5 && <LetterScene text={letter} chars={letterChars} complete={letterComplete} onText={(value) => { setLetter(value); setLetterChars(value.length); setLetterComplete(true); }} onShowAll={() => { setLetterChars(letter.length); setLetterComplete(true); }} onContinue={next} />}
+        {scene === 6 && <FinalScene revealed={secretEnding} onReveal={() => { setSecretEnding(true); burstConfetti(65); playTone(783.99); }} onReplay={replay} name={friendName} />}
       </div>
       {selectedPhoto !== null && <PhotoModal index={selectedPhoto} onClose={() => setSelectedPhoto(null)} />}
       {scene !== 0 && !isFinalNight && <footer className="relative z-10 px-6 pb-5 text-center font-hand text-xl text-muted-foreground">A little world made for you <span className="text-accent">♡</span></footer>}
@@ -238,6 +202,13 @@ function ProgressRail({ scene, completed, onJump }: { scene: Scene; completed: n
   </nav>;
 }
 
+function MusicPlayer({ onClose }: { onClose: () => void }) {
+  return <aside className="fixed right-4 top-16 z-40 w-[min(240px,calc(100vw-2rem))] overflow-hidden border border-border bg-card shadow-[var(--shadow-soft)]" aria-label="Birthday song">
+    <div className="flex h-9 items-center justify-between px-3"><span className="flex items-center gap-2 text-xs text-muted-foreground"><Music2 className="size-3.5 text-accent" /> your birthday song</span><Button variant="ghost" size="icon" onClick={onClose} aria-label="Pause and close music player" className="size-7"><Pause className="size-3.5" /></Button></div>
+    <iframe title="Birthday song on YouTube" className="block h-[200px] w-full border-0" src="https://www.youtube-nocookie.com/embed/v3dpn0q6ZVM?autoplay=1&playsinline=1&controls=1" allow="autoplay; encrypted-media; picture-in-picture" referrerPolicy="strict-origin-when-cross-origin" />
+  </aside>;
+}
+
 function SparkleTrail({ sparkles }: { sparkles: { id: number; x: number; y: number }[] }) {
   return <div className="pointer-events-none fixed inset-0 z-20" aria-hidden="true">{sparkles.map((item) => <Sparkles key={item.id} className="cursor-sparkle absolute size-3 text-[var(--color-gold)]" style={{ left: item.x, top: item.y }} />)}</div>;
 }
@@ -246,7 +217,7 @@ function Confetti({ confetti }: { confetti: { id: number; x: number; delay: numb
   return <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden" aria-hidden="true">{confetti.map((piece) => <span key={piece.id} className={`confetti-piece absolute top-0 h-3 w-2 ${["bg-accent", "bg-secondary", "bg-[var(--color-gold)]", "bg-primary", "bg-[var(--color-paper-deep)]"][piece.id % 5]}`} style={{ left: `${piece.x}%`, animationDelay: `${piece.delay}ms`, ["--confetti-x" as string]: `${((piece.id * 19) % 260) - 130}px` }} />)}</div>;
 }
 
-function SceneFrame({ number, label, title, subtitle, children, dark = false }: { number: string; label: string; title: string; subtitle?: string; children: ReactNode; dark?: boolean }) {
+function SceneFrame({ number, label, title, subtitle, children, dark = false }: { number: string; label: string; title: ReactNode; subtitle?: string; children: ReactNode; dark?: boolean }) {
   return <section className={`scene-shell relative flex flex-col items-center justify-center px-5 pb-24 pt-24 text-center sm:px-8 ${dark ? "text-background" : ""}`}>
     <div className="mb-8 flex items-center gap-3 font-hand text-xl text-accent"><span>{number}</span><span className="h-px w-10 bg-accent/60" /><span>{label}</span></div>
     <h1 className={`font-display text-5xl leading-[0.96] sm:text-6xl md:text-7xl ${dark ? "text-background" : "text-foreground"}`}>{title}</h1>
@@ -388,27 +359,10 @@ function WishScene({ candles, celebrated, onBlow, onRelight, onCelebrate, onCont
   </SceneFrame>;
 }
 
-function QuizScene({ answers, submitted, onAnswer, onSubmit, onContinue }: { answers: (number | null)[]; submitted: boolean; onAnswer: (question: number, answer: number) => void; onSubmit: () => void; onContinue: () => void }) {
-  return <SceneFrame number="05" label="just for fun" title="A little friendship quiz" subtitle="No wrong answers. Except possibly the ones involving cake.">
-    <div className="mt-8 grid w-full max-w-5xl gap-4 text-left md:grid-cols-3">
-      {quizQuestions.map((item, questionIndex) => <fieldset key={item.question} className="border-t border-border py-5">
-        <legend className="mb-4 font-display text-xl leading-snug">{String(questionIndex + 1).padStart(2, "0")} <span className="text-accent">·</span> {item.question}</legend>
-        <div className="flex flex-col gap-2">{item.choices.map((choice, answerIndex) => <Button key={choice} type="button" variant={answers[questionIndex] === answerIndex ? "secondary" : "outline"} onClick={() => !submitted && onAnswer(questionIndex, answerIndex)} disabled={submitted} className={`h-auto min-h-10 justify-start whitespace-normal px-3 py-2 text-left text-sm leading-snug ${answers[questionIndex] === answerIndex ? "border-accent" : "border-border/70"}`}>
-          <span className="flex size-5 shrink-0 items-center justify-center rounded-full border border-current text-xs">{String.fromCharCode(65 + answerIndex)}</span><span className="whitespace-normal">{choice}</span>{submitted && answers[questionIndex] === answerIndex && <Check className="ml-auto" />}
-        </Button>)}</div>
-        {submitted && answers[questionIndex] !== null && <p className="secret-reveal mt-3 font-hand text-xl text-accent">{item.response[answers[questionIndex] ?? 0]}</p>}
-      </fieldset>)}
-    </div>
-    {submitted && <p role="status" className="mt-3 font-hand text-2xl text-accent">Thanks for playing. You passed with flying colours. ♡</p>}
-    {!submitted ? <Button className="mt-7" disabled={answers.some((answer) => answer === null)} onClick={onSubmit}>lock in my answers <Check /></Button> : <ContinueButton className="mt-7" onClick={onContinue}>there's a letter for you <ArrowRight className="size-4" /></ContinueButton>}
-    <Button variant="ghost" onClick={onContinue} className="mt-1 font-hand text-lg text-muted-foreground">skip to the letter <ChevronRight /></Button>
-  </SceneFrame>;
-}
-
-function LetterScene({ text, complete, onText, onShowAll, onContinue }: { text: string; complete: boolean; onText: (value: string) => void; onShowAll: () => void; onContinue: () => void }) {
+function LetterScene({ text, chars, complete, onText, onShowAll, onContinue }: { text: string; chars: number; complete: boolean; onText: (value: string) => void; onShowAll: () => void; onContinue: () => void }) {
   const [editing, setEditing] = useState(false);
-  const visible = complete ? text : text.slice(0, Math.min(text.length, 12 + Math.floor((Date.now() % 100000) / 100)));
-  return <SceneFrame number="06" label="a few things from the heart" title="Before you go…" subtitle="A little letter, sent all the way to you.">
+  const visible = complete ? text : text.slice(0, chars);
+  return <SceneFrame number="05" label="a few things from the heart" title="Before you go…" subtitle="A little letter, sent all the way to you.">
     <article className="paper-surface relative mt-8 w-full max-w-2xl border border-border/70 px-6 py-8 text-left sm:px-12 sm:py-10" style={{ backgroundImage: `linear-gradient(oklch(0.982 0.019 78 / 91%), oklch(0.982 0.019 78 / 93%)), url(${stilllife})`, backgroundSize: "cover", backgroundPosition: "center" }}>
       <span className="absolute right-5 top-4 rotate-12 text-3xl text-accent/70" aria-hidden="true">✧</span>
       {editing ? <><label htmlFor="birthday-letter" className="font-hand text-lg text-accent">your letter, ready for edits</label><textarea id="birthday-letter" className="mt-4 min-h-80 w-full resize-y border border-border bg-background/80 p-4 font-hand text-xl leading-relaxed text-foreground focus-visible:outline-none" value={text} onChange={(event) => onText(event.target.value)} /><div className="mt-3 flex justify-end"><Button variant="outline" onClick={() => setEditing(false)}>done <Check /></Button></div></> : <div aria-live="polite"><pre className="whitespace-pre-wrap break-words font-hand text-[22px] leading-[1.7] text-foreground sm:text-2xl">{visible}{!complete && <span className="type-caret ml-0.5 inline-block h-5 w-px translate-y-1 bg-accent" />}</pre>{!complete && <Button variant="ghost" size="sm" className="mt-2 font-hand text-lg text-muted-foreground" onClick={onShowAll}>read the rest <ArrowDown /></Button>}</div>}
